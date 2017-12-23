@@ -21,7 +21,7 @@ class Response():
         self.content=response.text
         self.headers=response.headers
     def extract(self):
-        #try:
-           return json.loads(self.content)
-        #except:
-            #return "Non JSON object"
+        try:
+           return self.content.json()
+        except:
+            return json.loads(self.content)
