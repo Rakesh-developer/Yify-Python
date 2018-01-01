@@ -26,58 +26,6 @@ trackers = [
 
         'udp://track.two:80'
         ]
-class Yify():
-     def __init__(self):
-         self.req=Request("",BASE_API_URL)
-
-     def _list_movies(self,args,path=""):
-         """base method for all list movie methods. should be used only by this class methods"""
-         """args: Dictionary """
-         path="/list_movies.json"
-         data=args
-         #req=Request("",BASE_API_URL)
-         result= self.req.call_api("GET",path,data).extract()
-         if result['data'].get('movies'):
-             return result["data"]["movies"]
-         else:
-            "No movies Found"
-     def listMovies():
-         pass
-     def moviesByGenre(self,genre):
-        data={"genre":genre}
-        return self._list_movies(data)
-
-     def MoviesByName(self,name):
-         """Method to list movies specified in the parameter"""
-         """args: Name"""
-         data={"query_term":name}
-         return self._list_movies(data)
-     def moviesByQuality(self,quality="1080p"):
-         """Method to list movies by quality."""
-         """args: quality; Default:1080p"""
-         """returns: latest movie in specified quality"""
-         data={"quality":quality}
-         return self._list_movies(data)
-     def moviesByRating(self,rating):
-        """methods to list movies by rating"""
-        """args: Rating; Default: 0"""
-        """returns: List of movies based on rating"""
-        data={"rating":rating}
-        return self._list_movies(data)
-
-     def listUpcoming(self):
-         """List latest 4 upcoming movies in YTS"""
-         path="/list_upcoming.json"
-         return self._list_movies({},path)
-     def extractNameId(self,movies_list):
-         """Method to extract Movie Id and Name"""
-         movieId=dict()
-         for movie in movies_list:
-             movieId[movie["title"]]=movie["id"]
-         return movieId
-
-
-
 
 class Torrent():
     """Class used to download torrents or movies"""
@@ -106,15 +54,76 @@ class Torrent():
         """dowloads movie directly using magnet links"""
         os.startfile(self.make_magnet(trackers))
 
+class Yify(Torrent):
+     def __init__(self):
+         self.req=Request("",BASE_API_URL)
+
+     def _list_movies(self,args,path=""):
+         """base method for all list movie methods. should be used only by this class methods"""
+         """args: Dictionary """
+         path="/list_movies.json"
+         data=args
+         #req=Request("",BASE_API_URL)
+         result= self.req.call_api("GET",path,data).extract()
+         if result['data'].get('movies'):
+             return result["data"]["movies"]
+         else:
+            "No movies Found"
+     def listMovies(self,name,quality,genre,rating):
+         """Used to list and search through out all the available movies. Can sort, filter, search and order the results """
+         data={"genre":genre,"query_term":name,"quality":quality,"rating":rating}
+         return self._list_movies(data)
+
+     def moviesByGenre(self,genre):
+        data={"genre":genre}
+        return self._list_movies(data)
+
+     def MoviesByName(self,name):
+         """Method to list movies specified in the parameter"""
+         """args: Name"""
+         data={"query_term":name}
+         return self._list_movies(data)
+
+     def moviesByQuality(self,quality="1080p"):
+         """Method to list movies by quality."""
+         """args: quality; Default:1080p"""
+         """returns: latest movie in specified quality"""
+         data={"quality":quality}
+         return self._list_movies(data)
+
+     def moviesByRating(self,rating):
+        """methods to list movies by rating"""
+        """args: Rating; Default: 0"""
+        """returns: List of movies based on rating"""
+        data={"rating":rating}
+        return self._list_movies(data)
+
+     def listUpcoming(self):
+         """List latest 4 upcoming movies in YTS"""
+         path="/list_upcoming.json"
+         return self._list_movies({},path)
+
+     def extractNameId(self,movies_list):
+         """Method to extract Movie Id and Name."""
+         """args: movie_list(value returned by other methods of this class)"""
+         movieId=dict()
+         for movie in movies_list:
+             movieId[movie["title"]]=movie["id"]
+         return movieId
+    def login(self):
+        """Method used to login YTS users.Must be called before using methods such as likeMovie, bookmark, rateMovie etc"""
+        pass
+
 
 class Movie():
+    """Class used to represent Movies in YTS"""
+    """Methods: getDetails(),getReviews(),suggestions()"""
     def __init__(self,movie_id=None):
         self.movieId=movie_id
         self.req=Request("",BASE_API_URL)
 
     def getDetails(self):
         """Method to get details about the movie"""
-        """args: Movie_ID"""
         """returns movie details"""
         path="/movie_details.json"
         data={"movie_id":self.movieId}
@@ -125,10 +134,12 @@ class Movie():
             return "No movies Found"
 
     def getReviews(self):
+        """Method used to get reviews about the movies"""
         path="/movie_reviews.json"
         data={"movie_id":self.movieId}
         return self.req.call_api("GET",path,data).extract()
     def suggestions(self):
+
         path="/movie_suggestions.json"
         data={"movie_id":self.movieId}
         result=self.req.call_api("GET",path,data).extract()
@@ -151,8 +162,8 @@ def test():
 
     #x.downloadTorrent("C:\\Users\\Rakesh\\Desktop","moviename")
     #print(x.make_magnet())
-    x=y.MoviesByName("fifty shades")
+    x=y.moviesByGenre("thriller")
     print(y.extractNameId(x))
     m=Movie(6448)
-    print(m.getDetails())
+    print(m.suggestions())
 test()
